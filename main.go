@@ -7,14 +7,13 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
 func main() {
 	// Prompt user for target directory
-	fmt.Print("Enter the directory to download Gooo into (e.g., ~/projects/gooo): ")
+	fmt.Print("Enter the directory to download Gooo into (e.g., ~/projects/gooo or C:\\projects\\gooo): ")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	targetDir := strings.TrimSpace(scanner.Text())
@@ -34,6 +33,13 @@ func main() {
 		targetDir = filepath.Join(home, targetDir[1:])
 	}
 
+	// Convert to absolute path for consistency
+	targetDir, err := filepath.Abs(targetDir)
+	if err != nil {
+		fmt.Printf("Error: Could not resolve absolute path for %s: %v\n", targetDir, err)
+		os.Exit(1)
+	}
+
 	// Create target directory if it doesn't exist
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		fmt.Printf("Error: Could not create directory %s: %v\n", targetDir, err)
@@ -51,7 +57,6 @@ func main() {
 
 	// Extract the ZIP file
 	fmt.Printf("Extracting %s to %s...\n", zipPath, targetDir)
-	extractDir := filepath.Join(targetDir, "Gooo-main")
 	if err := extractZip(zipPath, targetDir); err != nil {
 		fmt.Printf("Error: Failed to extract ZIP file: %v\n", err)
 		os.Exit(1)
@@ -62,13 +67,7 @@ func main() {
 		fmt.Printf("Warning: Could not remove ZIP file: %v\n", err)
 	}
 
-	// Change to the extracted directory
-	if err := os.Chdir(extractDir); err != nil {
-		fmt.Printf("Error: Could not change to directory %s: %v\n", extractDir, err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("Success! Gooo project is scaffolded in %s\n", extractDir)
+	fmt.Printf("Success! Gooo project is scaffolded in %s\n", targetDir)
 }
 
 // downloadFile downloads a file from the given URL to the specified path
@@ -93,7 +92,7 @@ func downloadFile(url, path string) error {
 	return err
 }
 
-// extractZip extracts a ZIP file to the target directory
+// extractZip extracts a ZIP file to the target directory, stripping the top-level directory
 func extractZip(zipPath, targetDir string) error {
 	reader, err := zip.OpenReader(zipPath)
 	if err != nil {
@@ -102,7 +101,14 @@ func extractZip(zipPath, targetDir string) error {
 	defer reader.Close()
 
 	for _, file := range reader.File {
-		filePath := filepath.Join(targetDir, file.Name)
+		// Strip the top-level directory (e.g., "Gooo-main/")
+		parts := strings.SplitN(file.Name, string(os.PathSeparator), 2)
+		var filePath string
+		if len(parts) > 1 {
+			filePath = filepath.Join(targetDir, parts[1])
+		} else {
+			filePath = filepath.Join(targetDir, file.Name)
+		}
 
 		if file.FileInfo().IsDir() {
 			if err := os.MkdirAll(filePath, file.Mode()); err != nil {
@@ -134,12 +140,4 @@ func extractZip(zipPath, targetDir string) error {
 		}
 	}
 	return nil
-}
-
-// runCommand executes a command and captures its output
-func runCommand(name string, args ...string) error {
-	cmd := exec.Command(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }
