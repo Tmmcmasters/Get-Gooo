@@ -68,30 +68,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Install Templ CLI
-	fmt.Println("Installing Templ CLI...")
-	if err := runCommand("go", "install", "github.com/a-h/templ/cmd/templ@latest"); err != nil {
-		fmt.Printf("Error: Failed to install Templ CLI: %v\n", err)
-		fmt.Println("Please ensure Go is installed and try running 'go install github.com/a-h/templ/cmd/templ@latest' manually.")
-		os.Exit(1)
-	}
-
-	// Install front-end dependencies
-	fmt.Println("Installing front-end dependencies with npm...")
-	if err := runCommand("npm", "install"); err != nil {
-		fmt.Printf("Error: Failed to run 'npm install': %v\n", err)
-		fmt.Println("Please ensure Node.js and npm are installed and try running 'npm install' manually in the project directory.")
-		os.Exit(1)
-	}
-
-	// Run go mod tidy
-	fmt.Println("Running go mod tidy...")
-	if err := runCommand("go", "mod", "tidy"); err != nil {
-		fmt.Printf("Error: Failed to run 'go mod tidy': %v\n", err)
-		fmt.Println("Please ensure Go is installed and try running 'go mod tidy' manually in the project directory.")
-		os.Exit(1)
-	}
-
 	fmt.Printf("Success! Gooo project is set up in %s\n", extractDir)
 	fmt.Println("To start development:")
 	fmt.Println("  1. Navigate to the project: cd", extractDir)
