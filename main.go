@@ -68,11 +68,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Success! Gooo project is set up in %s\n", extractDir)
-	fmt.Println("To start development:")
-	fmt.Println("  1. Navigate to the project: cd", extractDir)
-	fmt.Println("  2. Start the Vite development server: npm run dev")
-	fmt.Println("  3. Start the Go backend: go run main.go")
+	fmt.Printf("Success! Gooo project is scaffolded in %s\n", extractDir)
 }
 
 // downloadFile downloads a file from the given URL to the specified path
